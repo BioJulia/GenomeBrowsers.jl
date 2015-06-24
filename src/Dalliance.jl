@@ -17,6 +17,36 @@ immutable DallianceBrowser
     sources::Vector{Dict}
 end
 
+
+function prepare_dataset(dataset::IntervalCollection{BEDMetadata})
+    out = IOBuffer()
+    write(out, BigBed, dataset)
+    return takebuf_array(out)
+end
+
+
+function prepare_dataset(dataset::IntervalStream{BEDMetadata})
+    ic = IntervalCollection{BEDMetadata}()
+    for interval in dataset
+        push!(ic, interval)
+    end
+    return prepare_dataset(ic)
+end
+
+
+function prepare_dataset{T <: Number}(dataset::IntervalStream{T})
+    out = IOBuffer()
+    write(out, BigWig, dataset)
+    return takebuf_array(out)
+end
+
+
+# catchall
+function prepare_dataset(dataset)
+    error("Dalliance does not currently support data of type $(typeof(dataset))")
+end
+
+
 function genomebrowser(genome::String, datasets...)
     if !haskey(supported_genomes, genome)
         error("Genome $(genome) is not currently supported.")
@@ -25,21 +55,7 @@ function genomebrowser(genome::String, datasets...)
     sources = Dict[]
     for dataset in datasets
         id = string(Base.Random.uuid4())
-        if isa(dataset, IntervalCollection)
-            out = IOBuffer()
-            write(out, BigBed, dataset)
-            DATASETS[id] = takebuf_array(out)
-        elseif isa(dataset, Intervals.BEDIterator)
-            ic = IntervalCollection{BEDMetadata}()
-            for interval in dataset
-                push!(ic, interval)
-            end
-            out = IOBuffer()
-            write(out, BigBed, ic)
-            DATASETS[id] = takebuf_array(out)
-        else
-            error("Dalliance does not currently support data of type $(typeof(dataset))")
-        end
+        DATASETS[id] = prepare_dataset(dataset)
         push!(sources, @compat Dict(
             "name"   => "User Data", # TODO: some way to set names
             "bwgURI" => "http://localhost:$(HTTP_SERVER_PORT)/$(id)"))
@@ -125,7 +141,9 @@ function http_handler(req::Request, res::Response)
     data = DATASETS[resource]
 
     m = match(r"bytes=(\d+)-(\d+)", req.headers["Range"])
-    range = (parse(Int, m.captures[1]) + 1):(parse(Int, m.captures[2]) + 1)
+    first = parse(Int, m.captures[1]) + 1
+    last  = parse(Int, m.captures[2]) + 1
+    range = first:min(last, length(data))
 
     return Response(data[range], h)
 end
@@ -150,7 +168,8 @@ function writemime(io::IO, ::MIME"text/html", browser::DallianceBrowser)
         ),
         "sources" => browser.sources)
 
-    println(io, "<script language=\"javascript\" xlink:href=\"", dalliancejs, "\"></script>")
+    #println(io, "<script language=\"javascript\" src=\"file://", dalliancejs, "\"></script>")
+    println(io, "<script language=\"javascript\">\n", readall(dalliancejs), "</script>")
     println(io,
         """
             <script language="javascript">
