@@ -12,7 +12,7 @@ import HttpCommon
 
 const HTTP_SERVER_PORT = 8001
 
-immutable DallianceBrowser
+struct DallianceBrowser
     genome_config::Dict
     sources::Vector{Dict}
 end
@@ -34,7 +34,7 @@ function prepare_dataset(dataset::IntervalStream{BEDMetadata})
 end
 
 
-function prepare_dataset{T <: Number}(dataset::IntervalStream{T})
+function prepare_dataset(dataset::IntervalStream{T}) where T <: Number
     out = IOBuffer()
     write(out, BigWig, dataset)
     return takebuf_array(out)
@@ -56,13 +56,13 @@ function genomebrowser(genome::String, datasets...)
     for dataset in datasets
         id = string(Base.Random.uuid4())
         DATASETS[id] = prepare_dataset(dataset)
-        push!(sources, @compat Dict(
+        push!(sources, Dict(
             "name"   => "User Data", # TODO: some way to set names
             "bwgURI" => "http://localhost:$(HTTP_SERVER_PORT)/$(id)"))
     end
 
     push!(sources,
-        @compat Dict("name"      => "Genome",
+        Dict("name"      => "Genome",
                      "twoBitURI" => supported_genomes[genome]["sequence"],
                      "tier_type" => "sequence"))
     
@@ -70,7 +70,7 @@ function genomebrowser(genome::String, datasets...)
 end
 
 
-const supported_genomes = @compat Dict(
+const supported_genomes = Dict(
     "GRCh38" => Dict(
         "speciesName" => "Human",
         "taxon"       => 9606,
@@ -102,7 +102,7 @@ const supported_genomes = @compat Dict(
 const DATASETS = Dict{String, Vector{Uint8}}()
 
 # HTTP Server instance.
-let HTTP_SERVER = @compat Nullable{Server}()
+let HTTP_SERVER = Nullable{Server}()
     global start_server
     function start_server()
         if isnull(HTTP_SERVER)
@@ -154,7 +154,7 @@ function writemime(io::IO, ::MIME"text/html", browser::DallianceBrowser)
 
     divid = string(Base.Random.uuid4())
 
-    config = @compat Dict(
+    config = Dict(
         "pageName" => divid,
         "chr"       => browser.genome_config["chr"],
         "viewStart" => browser.genome_config["viewStart"],
