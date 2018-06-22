@@ -16,16 +16,15 @@ end
 =#
 
 function prepare_dataset(dataset::IntervalCollection{T}) where {T <: Number}
-    out = IOBuffer()
     clens = Dict{String, Int64}()
     infer_chromlens!(clens, dataset)
-    wtr = BigWig.Writer(out, clens)
+    buffer = IOBuffer()
+    writer = BigWig.Writer(buffer, clens)
     for interval in dataset
-        write(wtr, interval)
+        write(writer, interval)
     end
-    arr = take!(out)
-    close(wtr)
-    return arr
+    close(writer)
+    return take!(IOBuffer(buffer.data))
 end
 
 # A generic catchall

@@ -7,6 +7,7 @@
 ![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg?style=flat-square)
 [![Chat on Discord](https://img.shields.io/badge/discord-chat-blue.svg?style=flat-square&logo=discord&colorB=%237289DA)](https://discord.gg/z73YNFz)
 
+
 ## Description
 
 This a Julia interface to the [Dalliance](http://www.biodalliance.org/) genome
@@ -18,6 +19,7 @@ to the efficient indexed formats [BigBed and
 BigWig](https://genome.ucsc.edu/FAQ/FAQformat.html#format1.5), which are kept in
 memory and served as needed to the browser front-end.
 
+
 ## Installation
 
 Install GenomeBrowsers from the Julia REPL:
@@ -27,6 +29,7 @@ using Pkg
 add("GenomeBrowsers")
 #Pkg.add("GenomeBrowsers") for julia prior to v0.7
 ```
+
 
 ## Testing
 
