@@ -32,7 +32,7 @@ Currently supported genomes include:
 
 GRCh38
 """
-function genomebrowser(genome::String, datasets...)
+function genomebrowser(genome, datasets...)
     if !haskey(supported_genomes, genome)
         error("Genome $(genome) is not currently supported.")
     end
@@ -40,16 +40,16 @@ function genomebrowser(genome::String, datasets...)
     sources = Dict[]
     
     for dataset in datasets
-        # Generate a random ID for the dataset.
-        id = string(Base.Random.uuid4())
-        # Prepare dataset by writing it to a suitable file format - but in
-        # memory in DATASETS[id], not to file.
-        DATASETS[id] = prepare_dataset(dataset)
-        # Push prepared dataset to the sources store for the genome browser.
-        # TODO: some way to set "names".
-        push!(sources, Dict(
-            "name"   => "User Data",
-            "bwgURI" => "http://localhost:$(HTTP_SERVER_PORT)/$(id)"))
+       # Generate a random ID for the dataset.
+       id = string(Base.Random.uuid4())
+       # Prepare dataset by writing it to a suitable file format - but in
+       # memory in DATASETS[id], not to file.
+       DATASETS[id] = prepare_dataset(dataset)
+       # Push prepared dataset to the sources store for the genome browser.
+       # TODO: some way to set "names".
+       push!(sources, Dict(
+           "name"   => "User Data",
+           "bwgURI" => "http://localhost:$(HTTP_SERVER_PORT)/$(id)"))
     end
 
     # TODO: Add any genome at all, not just "supported" ones.
@@ -58,10 +58,10 @@ function genomebrowser(genome::String, datasets...)
             "twoBitURI" => supported_genomes[genome]["sequence"],
             "tier_type" => "sequence"))
 
-    return DallianceBrowser(supported_genomes[genome], sources)
+    return GenomeBrowser(supported_genomes[genome], sources)
 end
 
-function show(io::IO, ::MIME"text/html", browser::DallianceBrowser)
+function show(io::IO, ::MIME"text/html", browser::GenomeBrowser)
     start_server()
 
     divid = string(Base.Random.uuid4())

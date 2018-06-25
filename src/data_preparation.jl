@@ -15,6 +15,18 @@ function prepare_dataset(dataset::IntervalStream{BEDMetadata})
 end
 =#
 
+function prepare_dataset(dataset::BED.Reader)
+    clens = Dict{String, Int64}()
+    infer_chromlens!(clens, dataset)
+    buffer = IOBuffer()
+    writer = BigBed.Writer(buffer)
+    for interval in dataset
+        write(writer, interval)
+    end
+    close(writer)
+    return take!(IOBuffer(buffer.data))
+end
+
 function prepare_dataset(dataset::IntervalCollection{T}) where {T <: Number}
     clens = Dict{String, Int64}()
     infer_chromlens!(clens, dataset)
