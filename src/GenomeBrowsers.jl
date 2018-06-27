@@ -47,7 +47,7 @@ function genomebrowser(genome, datasets...)
        DATASETS[id] = prepare_dataset(dataset)
        # Push prepared dataset to the sources store for the genome browser.
        # TODO: some way to set "names".
-       open(id) do file
+       open(id, "w") do file
            write(file, DATASETS[id])
        end
        push!(sources, Dict(
