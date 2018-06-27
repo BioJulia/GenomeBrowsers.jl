@@ -47,18 +47,22 @@ function genomebrowser(genome, datasets...)
        DATASETS[id] = prepare_dataset(dataset)
        # Push prepared dataset to the sources store for the genome browser.
        # TODO: some way to set "names".
-       #push!(sources, Dict(
-        #   "name"   => "User Data",
-        #   "bwgURI" => "http://localhost:$(HTTP_SERVER_PORT)/$(id)"))
-        push!(sources, Dict(
-            "name" => "User Data",
-            "bwgURI" => JSONText(
-            """
-            URL.createObjectURL(
-                new Blob($(JSON.json(DATASETS[id])))
-            )
-            """
-            )))
+       open(id) file do
+           write(file, DATASETS[id])
+       end
+       push!(sources, Dict(
+           "name"   => "User Data",
+           #"bwgURI" => "http://localhost:$(HTTP_SERVER_PORT)/$(id)"))
+           "bwgURI" => id))
+        #push!(sources, Dict(
+        #    "name" => "User Data",
+        #    "bwgURI" => JSONText(
+        #    """
+        #    URL.createObjectURL(
+        #        new Blob($(JSON.json(DATASETS[id])))
+        #    )
+        #    """
+        #    )))
     end
 
     # TODO: Add any genome at all, not just "supported" ones.
