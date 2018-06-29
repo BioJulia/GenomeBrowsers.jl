@@ -45,7 +45,7 @@ function genomebrowser(genome, inline = false, datasets...)
        # Prepare dataset by writing it to a suitable file format - but in
        # memory in DATASETS[id], not to file.
        if inline
-           inlined_data = JSONText("new Blob([new UInt8Array($(JSON.json(prepare_dataset(dataset))))])")
+           inlined_data = JSONText("new Blob([new Uint8Array($(JSON.json(prepare_dataset(dataset))))])")
            push!(sources, Dict(
                "name" => "User Data",
                "bwgBlob" => inlined_data
