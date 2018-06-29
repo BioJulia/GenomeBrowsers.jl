@@ -32,7 +32,7 @@ Currently supported genomes include:
 
 GRCh38
 """
-function genomebrowser(genome, datasets...)
+function genomebrowser(genome, inline = false, datasets...)
     if !haskey(supported_genomes, genome)
         error("Genome $(genome) is not currently supported.")
     end
@@ -44,25 +44,20 @@ function genomebrowser(genome, datasets...)
        id = string(Base.Random.uuid4())
        # Prepare dataset by writing it to a suitable file format - but in
        # memory in DATASETS[id], not to file.
-       DATASETS[id] = prepare_dataset(dataset)
-       # Push prepared dataset to the sources store for the genome browser.
-       # TODO: some way to set "names".
-       open(id, "w") do file
-           write(file, DATASETS[id])
-       end
-       push!(sources, Dict(
-           "name"   => "User Data",
-           #"bwgURI" => "http://localhost:$(HTTP_SERVER_PORT)/$(id)"))
-           "bwgURI" => id))
-        #push!(sources, Dict(
-        #    "name" => "User Data",
-        #    "bwgURI" => JSONText(
-        #    """
-        #    URL.createObjectURL(
-        #        new Blob($(JSON.json(DATASETS[id])))
-        #    )
-        #    """
-        #    )))
+       if inline
+           inlined_data = JSONText("new Blob([new UInt8Array($(JSON.json(prepare_dataset(dataset))))])")
+           push!(sources, Dict(
+               "name" => "User Data",
+               "bwgBlob" => inlined_data
+           ))
+        else
+            DATASETS[id] = prepare_dataset(dataset)
+            # Push prepared dataset to the sources store for the genome browser.
+            # TODO: some way to set "names".
+            push!(sources, Dict(
+             "name"   => "User Data",
+             "bwgURI" => "http://localhost:$(HTTP_SERVER_PORT)/$(id)"))
+        end
     end
 
     # TODO: Add any genome at all, not just "supported" ones.
