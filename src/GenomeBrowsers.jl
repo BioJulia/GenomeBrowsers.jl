@@ -32,7 +32,7 @@ Currently supported genomes include:
 
 GRCh38
 """
-function genomebrowser(genome, inline = false, datasets...)
+function genomebrowser(genome, datasets...; inline = false)
     if !haskey(supported_genomes, genome)
         error("Genome $(genome) is not currently supported.")
     end
