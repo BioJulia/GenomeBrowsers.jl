@@ -69,11 +69,9 @@ function genomebrowser(genome, inline = false, datasets...)
     return GenomeBrowser(supported_genomes[genome], sources)
 end
 
-function show(io::IO, ::MIME"text/html", browser::GenomeBrowser)
+function write_html(io::IO, browser::GenomeBrowser)
     start_server()
-
     divid = string(Base.Random.uuid4())
-
     config = Dict(
         "pageName" => divid,
         "chr"       => browser.genome_config["chr"],
@@ -102,6 +100,11 @@ function show(io::IO, ::MIME"text/html", browser::GenomeBrowser)
             </script>
         """)
     println(io, "<div id=\"", divid, "\"/>")
+end
+    
+
+function show(io::IO, ::MIME"text/html", browser::GenomeBrowser)
+    write_html(io, browser)
 end
 
 end # module GenomeBrowsers
